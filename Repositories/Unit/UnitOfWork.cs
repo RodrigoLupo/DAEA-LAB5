@@ -3,7 +3,7 @@ using LAB05_Lupo.Models;
 
 namespace LAB05_Lupo.Repositories.Unit;
 
-public class UnitOfWork: IUnitofWork
+public class UnitOfWork: IUnitOfWork
 {
     private readonly Hashtable? _repositories;
     private readonly EscuelaDbContext _context;

@@ -28,7 +28,11 @@ public partial class EscuelaDbContext : DbContext
     public virtual DbSet<Matricula> Matriculas { get; set; }
 
     public virtual DbSet<Profesore> Profesores { get; set; }
-    
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseNpgsql("Host=localhost;Database=escueladb;Username=postgres;Password=root;Port=5432");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Asistencia>(entity =>
@@ -66,6 +70,25 @@ public partial class EscuelaDbContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .HasColumnName("nombre");
+
+            entity.HasMany(d => d.IdProfesors).WithMany(p => p.IdCursos)
+                .UsingEntity<Dictionary<string, object>>(
+                    "CursoProfesor",
+                    r => r.HasOne<Profesore>().WithMany()
+                        .HasForeignKey("IdProfesor")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("curso_profesor_id_profesor_fkey"),
+                    l => l.HasOne<Curso>().WithMany()
+                        .HasForeignKey("IdCurso")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("curso_profesor_id_curso_fkey"),
+                    j =>
+                    {
+                        j.HasKey("IdCurso", "IdProfesor").HasName("curso_profesor_pkey");
+                        j.ToTable("curso_profesor");
+                        j.IndexerProperty<int>("IdCurso").HasColumnName("id_curso");
+                        j.IndexerProperty<int>("IdProfesor").HasColumnName("id_profesor");
+                    });
         });
 
         modelBuilder.Entity<Estudiante>(entity =>
