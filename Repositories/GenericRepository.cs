@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using LAB05_Lupo.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace LAB05_Lupo.Repositories;
 
@@ -13,13 +14,28 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _context = context;
     }
 
-    public async Task<IEnumerable<T>> GetAll() => await _context.Set<T>().ToListAsync();
-    
+    public async Task<IEnumerable<T>> GetAll(
+        Expression<Func<T, bool>>? filter = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
+    {
+        IQueryable<T> query = _context.Set<T>();
+
+        if (filter != null)
+            query = query.Where(filter);
+
+        if (include != null)
+            query = include(query);
+
+        return await query.ToListAsync();
+    }
+
     public async Task<T?> GetById(int id) => await _context.Set<T>().FindAsync(id);
 
     public async Task<T?> GetByIdString(string id) => await _context.Set<T>().FindAsync(id);
     
-    public async Task<List<T>> GetByIds(IEnumerable<int> ids)
+    public async Task<List<T>> GetByIds(
+        IEnumerable<int> ids,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
     {
         var idProperty = typeof(T)
             .GetProperties()
@@ -39,9 +55,14 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         var containsCall = Expression.Call(containsMethod, idsConstant, propertyAccess);
         var lambda = Expression.Lambda<Func<T, bool>>(containsCall, parameter);
 
-        return await _context.Set<T>().Where(lambda).ToListAsync();
-       
+        IQueryable<T> query = _context.Set<T>().Where(lambda);
+
+        if (include != null)
+            query = include(query);
+
+        return await query.ToListAsync();
     }
+
     
     public async Task Add(T entity)
     {

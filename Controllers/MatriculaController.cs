@@ -1,5 +1,6 @@
 ﻿using LAB05_Lupo.Models;
 using LAB05_Lupo.Repositories.Unit;
+using LAB05_Lupo.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LAB05_Lupo.Controllers;
@@ -9,10 +10,18 @@ namespace LAB05_Lupo.Controllers;
 public class MatriculaController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
-
-    public MatriculaController(IUnitOfWork unitOfWork)
+    private readonly MatriculasService _service;
+    public MatriculaController(IUnitOfWork unitOfWork, MatriculasService service)
     {
         _unitOfWork = unitOfWork;
+        _service = service;
+    }
+    
+    [HttpGet("{idMatricula}/profesores")]
+    public async Task<IActionResult> GetProfesores(int idMatricula)
+    {
+        var profesores = await _service.GetProfesoresByMatriculaCursoAsync(idMatricula);
+        return Ok(profesores);
     }
 
     [HttpGet]
