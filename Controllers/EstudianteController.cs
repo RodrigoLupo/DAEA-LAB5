@@ -1,11 +1,7 @@
 ﻿using LAB05_Lupo.Models;
 using LAB05_Lupo.Repositories.Unit;
 using Microsoft.AspNetCore.Mvc;
-
 namespace LAB05_Lupo.Controllers;
-
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -19,7 +15,7 @@ public class EstudianteController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult> GetAsistencias()
+    public async Task<ActionResult> GetEstudiantes()
     {
         var estudiantes = await _unitOfWork.GetRepository<Estudiante>().GetAll();
         return Ok(estudiantes);
